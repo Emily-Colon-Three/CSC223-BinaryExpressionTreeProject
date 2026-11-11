@@ -116,7 +116,7 @@ class BinaryExpressionTree:
                 subtree = BinaryExpressionTree()
                 subtree.add_root(int(token)) # New subtree given root of token
 
-            elif token is in "+-*/":
+            elif token in "+-*/":
                 if self._stack.size() < 2: # Operation needs two operands
                     raise ValueError("Too few operands.")
                 # Most recent subtree made right tree, one just before made left
@@ -139,6 +139,27 @@ class BinaryExpressionTree:
             raise ValueError("Too many operands.")
         return self._stack.pop()
 
+    # Finds the numerical value of an expression tree via recursive algorithm; calls itself
+    # until it gets to leaf, returning value in that case, then applying operations between
+    # children of operator internal nodes.
+    def evaluate(self, expression: BinaryExpressionTree) -> int | float:
+        if expression._root is None:
+            raise ValueError("Empty expression.")
+        p = expression._root
 
-# Testing
-import unittest
+        if p.is_leaf():
+            return p.element()
+        # When evaluating a non-leaf tree/subtree, combines left and right according to root operator
+        else:
+            if p.element == '+':
+                return self.evaluate(p.left) + self.evaluate(p.right)
+            elif p.element == '-':
+                return self.evaluate(p.left) - self.evaluate(p.right)
+            elif p.element == '*':
+                return self.evaluate(p.left) * self.evaluate(p.right)
+            elif p.element == '/':
+                if p.right.element == 0:
+                    raise ZeroDivisionError("Division by zero encountered.")
+                return self.evaluate(p.left) / self.evaluate(p.right)
+
+            else: raise ValueError("Invalid operator.")
