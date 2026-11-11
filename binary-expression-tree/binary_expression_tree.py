@@ -80,6 +80,7 @@ class BinaryExpressionTree:
     def add_root(self, e):
         if self._root is not None:
             raise ValueError("Root already exists for tree.")
+
         self._root = self._Node(e)
         return self._root
 
@@ -89,6 +90,7 @@ class BinaryExpressionTree:
         node = self._validate(p)
         if node.left is not None:
             raise ValueError("Left node already exists.")
+
         node.left = self._Node(e, node)
         return self._make_position(node.left)
 
@@ -97,5 +99,46 @@ class BinaryExpressionTree:
         node = self._validate(p)
         if node.right is not None:
             raise ValueError("Right node already exists.")
+
         node.right = self._Node(e, node)
         return self._make_position(node.right)
+
+    # The method through which a Binary Expression Tree is constructed.
+    # Takes postfix expression, processes it as tokens then builds a binary tree which
+    # represents it. The expression must be valid, or error raised. Returns built tree.
+    def build_tree(self, expression):
+        tokens = expression.split()
+        if len(tokens) == 0: # Validates input
+            raise ValueError("Empty expression.")
+
+        for token in tokens:
+            if token.isdigit():
+                subtree = BinaryExpressionTree()
+                subtree.add_root(int(token)) # New subtree given root of token
+
+            elif token is in "+-*/":
+                if self._stack.size() < 2: # Operation needs two operands
+                    raise ValueError("Too few operands.")
+                # Most recent subtree made right tree, one just before made left
+                right_tree = self._stack.pop()
+                left_tree = self._stack.pop()
+
+                subtree = BinaryExpressionTree() # subtree reset to new, empty tree
+                subtree.add_root(token)
+                # Operands joined to operator as children
+                subtree.add_left(left_tree)
+                subtree.add_right(right_tree)
+
+                self._stack.push(subtree) # New subtree for operation added back to stack
+
+            else:
+                raise ValueError("Invalid expression: token does not exist.")
+
+        # Stack is validated as having only one subtree left, before it is popped from stack and returned.
+        if self._stack.size() != 1:
+            raise ValueError("Too many operands.")
+        return self._stack.pop()
+
+
+# Testing
+import unittest
